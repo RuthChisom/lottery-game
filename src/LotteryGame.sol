@@ -13,15 +13,23 @@ contract LotteryGame {
 
     // TODO: Declare state variables
     // - Mapping for player information
+    mapping(address => Player) public players;
     // - Array to track player addresses
+    address[] public playerAddresses;
     // - Total prize pool
+    uint256 public totalPrizePool;
     // - Array for winners
+    address[] public winners;
     // - Array for previous winners
+    address[] public previousWinners
 
     // TODO: Declare events
     // - PlayerRegistered
+    event PlayerRegistered(address indexed player);
     // - GuessResult
+    event GuessResult(address indexed player, bool success, uint256 correctNumber);
     // - PrizesDistributed
+    event PrizesDistributed(address[] winners, uint256 prizeAmount);
 
     /**
      * @dev Register to play the game
@@ -30,10 +38,19 @@ contract LotteryGame {
     function register() public payable {
         // TODO: Implement registration logic
         // - Verify correct payment amount
+        require(msg.value == 0.02 ether, "Must send exactly 0.02 ETH to register");
+        require(!players[msg.sender].active, "Player already registered");
         // - Add player to mapping
+        players[msg.sender] = Player({
+            attempts: 3,
+            active: true
+        })
         // - Add player address to array
+        playerAddresses.push(msg.sender);
         // - Update total prize
+        totalPrizePool += msg.value;
         // - Emit registration event
+        emit PlayerRegistered(msg.sender);
     }
 
     /**
@@ -43,12 +60,25 @@ contract LotteryGame {
     function guessNumber(uint256 guess) public {
         // TODO: Implement guessing logic
         // - Validate guess is between 1 and 9
+        require(guess >= 1 && guess <= 9, "Guess must be between 1 and 9");
         // - Check player is registered and has attempts left
+        require(players[msg.sender].active, "You are not registered");
+        require(players[msg.sender].attempts > 0, "You have used up your attempts");
         // - Generate "random" number
+        uint256 random = _generateRandomNumber();
         // - Compare guess with random number
+        if(guess == random){
+            // - Handle correct guesses
+            winners.push(msg.sender); //add to winners
+            emit GuessResult(msg.sender, true, random);
+            players[msg.sender].active = false //make inactive to ensure 1 win per player
+        } else {
+            emit GuessResult(msg.sender, false, random);
+        }
         // - Update player attempts
-        // - Handle correct guesses
+        players[msg.sender].attempts--;
         // - Emit appropriate event
+        emit GuessResult(msg.sender, guess, random, isCorrect);
     }
 
     /**
@@ -56,11 +86,29 @@ contract LotteryGame {
      */
     function distributePrizes() public {
         // TODO: Implement prize distribution logic
+        //check that there is a winner
+        require(winners.length > 0, "No winners to reward");
         // - Calculate prize amount per winner
+        uint256 prizePerWinner = totalPrizePool / winners.length;
         // - Transfer prizes to winners
-        // - Update previous winners list
+        for (uint256 i = 0; i < winners.length; i++){
+            address winner = winners[i];
+            (bool sent, ) = winner.call{value: prizePerWinner}("");
+            require(sent, "Failed to send prize");
+
+            // - Update previous winners list
+            previousWinners.push(winner);
+        }
         // - Reset game state
+        delete winners;
+        delete playerAddresses;
+        totalPrizePool = 0;
+        //reset player mappings
+        for (uint256 i = 0; i < playerAddresses.length; i++){
+            delete players[playerAddresses[i]];
+        }
         // - Emit event
+        emit PrizesDistributed(winners, prizePerWinner);
     }
 
     /**
@@ -69,6 +117,7 @@ contract LotteryGame {
      */
     function getPrevWinners() public view returns (address[] memory) {
         // TODO: Return previous winners array
+        return previousWinners;
     }
 
     /**
