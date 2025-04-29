@@ -42,7 +42,7 @@ contract LotteryGame {
         require(!players[msg.sender].active, "Player already registered");
         // - Add player to mapping
         players[msg.sender] = Player({
-            attempts: 3,
+            attempts: 0,
             active: true
         });
         // - Add player address to array
@@ -60,10 +60,10 @@ contract LotteryGame {
     function guessNumber(uint256 guess) public {
         // TODO: Implement guessing logic
         // - Validate guess is between 1 and 9
-        require(guess >= 1 && guess <= 9, "Guess must be between 1 and 9");
+        require(guess >= 1 && guess <= 9, "Number must be between 1 and 9");
         // - Check player is registered and has attempts left
         require(players[msg.sender].active, "You are not registered");
-        require(players[msg.sender].attempts > 0, "You have used up your attempts");
+        require(players[msg.sender].attempts < 2, "Player has already made 2 attempts");
         // - Generate "random" number
         uint256 random = _generateRandomNumber();
         // - Compare guess with random number
@@ -76,7 +76,7 @@ contract LotteryGame {
             emit GuessResult(msg.sender, false, random);
         }
         // - Update player attempts
-        players[msg.sender].attempts--;
+        players[msg.sender].attempts++;
         // - Emit appropriate event
         // emit GuessResult(msg.sender, guess, random, isCorrect);
     }
@@ -87,7 +87,7 @@ contract LotteryGame {
     function distributePrizes() public {
         // TODO: Implement prize distribution logic
         //check that there is a winner
-        require(winners.length > 0, "No winners to reward");
+        require(winners.length > 0, "No winners to distribute prizes to");
         // - Calculate prize amount per winner
         uint256 prizePerWinner = totalPrizePool / winners.length;
         // - Transfer prizes to winners
