@@ -34,7 +34,7 @@ contract LotteryGameTest is
         (uint256 attempts, bool active) = game.players(player1);
         assertEq(attempts, 0);
         assertTrue(active);
-        assertEq(game.totalPrizePool(), 0.02 ether);
+        assertEq(game.totalPrize(), 0.02 ether);
     }
 
     function testRegisterWithIncorrectAmount() public {
@@ -100,56 +100,56 @@ contract LotteryGameTest is
     }
 
     // To test that a correct guess actually adds the player to the winners list
-    // function testCorrectGuessAddsWinner() public {
-    //     vm.startPrank(player1);
-    //     game.register{value: 0.02 ether}();
+    function testCorrectGuessAddsWinner() public {
+        vm.startPrank(player1);
+        game.register{value: 0.02 ether}();
 
-    //     // Mock the random number
-    //     vm.mockCall(address(game), abi.encodeWithSelector(game._generateRandomNumber.selector), abi.encode(5));
+        // Mock the random number
+        vm.mockCall(address(game), abi.encodeWithSelector(game._generateRandomNumber.selector), abi.encode(5));
         
-    //     game.guessNumber(5);
-    //     vm.stopPrank();
+        game.guessNumber(5);
+        vm.stopPrank();
 
-    //     address[] memory winners = game.getWinners();
-    //     assertEq(winners.length, 1);
-    //     assertEq(winners[0], player1);
-    // }
+        address[] memory winners = game.getWinners();
+        assertEq(winners.length, 1);
+        assertEq(winners[0], player1);
+    }
 
     //To make sure winners receive ETH correctly and the prize pool is reset
-    // function testDistributePrizesWithWinners() public {
-    //     vm.startPrank(player1);
-    //     game.register{value: 0.02 ether}();
+    function testDistributePrizesWithWinners() public {
+        vm.startPrank(player1);
+        game.register{value: 0.02 ether}();
 
-    //     // Simulate a correct guess
-    //     vm.mockCall(address(game), abi.encodeWithSelector(game._generateRandomNumber.selector), abi.encode(5));
-    //     game.guessNumber(5);
-    //     vm.stopPrank();
+        // Simulate a correct guess
+        vm.mockCall(address(game), abi.encodeWithSelector(game._generateRandomNumber.selector), abi.encode(5));
+        game.guessNumber(5);
+        vm.stopPrank();
 
-    //     uint256 balanceBefore = player1.balance;
+        uint256 balanceBefore = player1.balance;
 
-    //     // Distribute prizes
-    //     game.distributePrizes();
+        // Distribute prizes
+        game.distributePrizes();
 
-    //     // Check if prize is transferred
-    //     assertGt(player1.balance, balanceBefore);
-    //     assertEq(game.totalPrizePool(), 0);
-    // }
+        // Check if prize is transferred
+        assertGt(player1.balance, balanceBefore);
+        assertEq(game.totalPrize(), 0);
+    }
 
     // Ensure getPrevWinners() returns correct data after prize distribution
-    // function testPreviousWinnersAreStored() public {
-    //     vm.startPrank(player1);
-    //     game.register{value: 0.02 ether}();
+    function testPreviousWinnersAreStored() public {
+        vm.startPrank(player1);
+        game.register{value: 0.02 ether}();
 
-    //     vm.mockCall(address(game), abi.encodeWithSelector(game._generateRandomNumber.selector), abi.encode(5));
-    //     game.guessNumber(5);
-    //     vm.stopPrank();
+        vm.mockCall(address(game), abi.encodeWithSelector(game._generateRandomNumber.selector), abi.encode(5));
+        game.guessNumber(5);
+        vm.stopPrank();
 
-    //     game.distributePrizes();
+        game.distributePrizes();
         
-    //     address[] memory prevWinners = game.getPrevWinners();
-    //     assertEq(prevWinners.length, 1);
-    //     assertEq(prevWinners[0], player1);
-    // }
+        address[] memory prevWinners = game.getPrevWinners();
+        assertEq(prevWinners.length, 1);
+        assertEq(prevWinners[0], player1);
+    }
 
     // A player shouldn't register more than once.
     function testPlayerCannotRegisterTwice() public {

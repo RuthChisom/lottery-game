@@ -21,7 +21,7 @@ contract LotteryGame {
     // - Array for winners
     address[] public winners;
     // - Array for previous winners
-    address[] public previousWinners;
+    address[] public previousWinners
 
     // TODO: Declare events
     // - PlayerRegistered
@@ -44,7 +44,7 @@ contract LotteryGame {
         players[msg.sender] = Player({
             attempts: 3,
             active: true
-        });
+        })
         // - Add player address to array
         playerAddresses.push(msg.sender);
         // - Update total prize
@@ -71,14 +71,14 @@ contract LotteryGame {
             // - Handle correct guesses
             winners.push(msg.sender); //add to winners
             emit GuessResult(msg.sender, true, random);
-            players[msg.sender].active = false ;//make inactive to ensure 1 win per player
+            players[msg.sender].active = false //make inactive to ensure 1 win per player
         } else {
             emit GuessResult(msg.sender, false, random);
         }
         // - Update player attempts
         players[msg.sender].attempts--;
         // - Emit appropriate event
-        // emit GuessResult(msg.sender, guess, random, isCorrect);
+        emit GuessResult(msg.sender, guess, random, isCorrect);
     }
 
     /**
@@ -99,9 +99,6 @@ contract LotteryGame {
             // - Update previous winners list
             previousWinners.push(winner);
         }
-
-        // - Emit event
-        emit PrizesDistributed(winners, prizePerWinner);
         // - Reset game state
         delete winners;
         delete playerAddresses;
@@ -110,6 +107,8 @@ contract LotteryGame {
         for (uint256 i = 0; i < playerAddresses.length; i++){
             delete players[playerAddresses[i]];
         }
+        // - Emit event
+        emit PrizesDistributed(winners, prizePerWinner);
     }
 
     /**
