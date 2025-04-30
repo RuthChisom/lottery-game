@@ -17,7 +17,7 @@ contract LotteryGame {
     // - Array to track player addresses
     address[] public playerAddresses;
     // - Total prize pool
-    uint256 public totalPrizePool;
+    uint256 public totalPrize;
     // - Array for winners
     address[] public winners;
     // - Array for previous winners
@@ -38,7 +38,7 @@ contract LotteryGame {
     function register() public payable {
         // TODO: Implement registration logic
         // - Verify correct payment amount
-        require(msg.value == 0.02 ether, "Must send exactly 0.02 ETH to register");
+        require(msg.value == 0.02 ether, "Please stake 0.02 ETH");
         require(!players[msg.sender].active, "Player already registered");
         // - Add player to mapping
         players[msg.sender] = Player({
@@ -48,7 +48,7 @@ contract LotteryGame {
         // - Add player address to array
         playerAddresses.push(msg.sender);
         // - Update total prize
-        totalPrizePool += msg.value;
+        totalPrize += msg.value;
         // - Emit registration event
         emit PlayerRegistered(msg.sender);
     }
@@ -89,7 +89,7 @@ contract LotteryGame {
         //check that there is a winner
         require(winners.length > 0, "No winners to distribute prizes to");
         // - Calculate prize amount per winner
-        uint256 prizePerWinner = totalPrizePool / winners.length;
+        uint256 prizePerWinner = totalPrize / winners.length;
         // - Transfer prizes to winners
         for (uint256 i = 0; i < winners.length; i++){
             address winner = winners[i];
@@ -105,7 +105,7 @@ contract LotteryGame {
         // - Reset game state
         delete winners;
         delete playerAddresses;
-        totalPrizePool = 0;
+        totalPrize = 0;
         //reset player mappings
         for (uint256 i = 0; i < playerAddresses.length; i++){
             delete players[playerAddresses[i]];

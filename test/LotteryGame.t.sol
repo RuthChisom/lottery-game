@@ -34,12 +34,12 @@ contract LotteryGameTest is
         (uint256 attempts, bool active) = game.players(player1);
         assertEq(attempts, 0);
         assertTrue(active);
-        assertEq(game.totalPrizePool(), 0.02 ether);
+        assertEq(game.totalPrize(), 0.02 ether);
     }
 
     function testRegisterWithIncorrectAmount() public {
         vm.prank(player1);
-        vm.expectRevert("Must send exactly 0.02 ETH to register");
+        vm.expectRevert("Please stake 0.02 ETH");
         game.register{value: 0.01 ether}();
     }
 
